@@ -44,7 +44,9 @@ class Convert():
             contents['configurations'] = workspace_parsed
             target.write(json.dumps(contents, indent=2))
 
-        print('written to launch.json.')
+        print('> OK written to launch.json.')
+        print('> Copy launch.json to your VSCode project / workspace '
+              'and have fun!')
 
     def parse_workspace_xml(self) -> list:
         doc = xml.dom.minidom.parse("workspace.xml")
