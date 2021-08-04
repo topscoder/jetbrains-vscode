@@ -159,7 +159,7 @@ class VSCodeConfigurationElement():
         if '$PROJECT_DIR$' in value:
             self.__dict__[name] = value.replace(
                 '$PROJECT_DIR$',
-                '{$workspaceFolder}')
+                '${workspaceFolder}')
 
 
 if __name__ == '__main__':
