@@ -31,18 +31,16 @@ class Convert():
         workspace_parsed = self.parse_workspace_xml()
         contents = {}
 
-        with open('launch.json', ) as target:
+        with open('launch.json', 'w+') as target:
+            # Warning! It's overwriting all existing configurations.
             try:
                 contents = json.load(target)
             except Exception:
                 pass
-
-            target.close()
-
-        with open('launch.json', 'w+') as target:
-            # Warning! It's overwriting all existing configurations.
             contents['configurations'] = workspace_parsed
             target.write(json.dumps(contents, indent=2))
+
+            target.close()
 
         print('> OK written to launch.json.')
         print('> Copy launch.json to your VSCode project / workspace '
