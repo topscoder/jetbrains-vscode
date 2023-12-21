@@ -5,16 +5,17 @@
 
     Requirements:
         - workspace.xml:
-            Copy your workspace.xml from your Jetbrains IDE into this folder.
+            Copy your workspace.xml's from your Jetbrains IDE (e.g. .run folder) into this folder.
         - launch.json: (Optional)
             Copy launch.json from your Jetbrains IDE into this folder.
 
     Warning!
-    Warning! It's overwriting all existing configurations in launch.json file.
+    Warning! It's overwriting all existing run configurations in launch.json file.
     Warning! But the good news is that is only overwrites the configurations.
     Warning!
 """
-
+from pathlib import Path
+from os import getcwd
 import json
 import xml.dom.minidom
 
@@ -47,43 +48,50 @@ class Convert():
               'and have fun!')
 
     def parse_workspace_xml(self) -> list:
-        doc = xml.dom.minidom.parse("workspace.xml")
-        configuration_nodes = doc.getElementsByTagName('configuration')
+        cwd = Path(getcwd())
         nodes = []
+        xml_files = cwd.rglob("*.xml")
+        for workspace_xml in cwd.rglob("*.xml"):
+            print(f'> reading {str(workspace_xml)}')
+            doc = xml.dom.minidom.parse(str(workspace_xml))
+            configuration_nodes = doc.getElementsByTagName('configuration')
 
-        for node in configuration_nodes:
-            if node.getAttribute('type') != 'PythonConfigurationType':
-                continue
-
-            if node.getAttribute('name') == '':
-                continue
-
-            if node.getAttribute('type') == '':
-                continue
-
-            vscode_node = VSCodeConfigurationElement(
-                node.getAttribute('name'),
-                node.getAttribute('type'),
-                'launch',
-                '',
-                'integratedTerminal'
-            )
-
-            if node.getElementsByTagName('module'):
-                module_name = node.getElementsByTagName('module')[0] \
-                                    .getAttribute('name')
-                vscode_node.presentation['group'] = module_name
-
-            node_options = node.getElementsByTagName('option')
-            for option in node_options:
-                if option.getAttribute('name') == 'SCRIPT_NAME':
-                    vscode_node.program = option.getAttribute('value')
+            for node in configuration_nodes:
+                if node.getAttribute('type') != 'PythonConfigurationType':
                     continue
 
-                if option.getAttribute('name') == 'PARAMETERS':
-                    vscode_node.args = option.getAttribute('value').split(' ')
+                if node.getAttribute('name') == '':
+                    continue
 
-            nodes.append(vscode_node.as_dict())
+                if node.getAttribute('type') == '':
+                    continue
+
+                vscode_node = VSCodeConfigurationElement(
+                    node.getAttribute('name'),
+                    node.getAttribute('type'),
+                    'launch',
+                    '',
+                    'integratedTerminal'
+                )
+
+                if node.getElementsByTagName('module'):
+                    module_name = node.getElementsByTagName('module')[0] \
+                                        .getAttribute('name')
+                    vscode_node.presentation['group'] = module_name
+
+                node_options = node.getElementsByTagName('option')
+                for option in node_options:
+                    if option.getAttribute('name') == 'SCRIPT_NAME':
+                        vscode_node.program = option.getAttribute('value')
+                        continue
+
+                    if option.getAttribute('name') == 'PARAMETERS':
+                        vscode_node.args = option.getAttribute('value').replace('$PROJECT_DIR$','${workspaceFolder}').split(' ')
+
+                    if option.getAttribute('name') == 'WORKING_DIRECTORY':
+                        vscode_node.cwd = option.getAttribute('value')
+
+                nodes.append(vscode_node.as_dict())
 
         return nodes
 
@@ -108,6 +116,7 @@ class VSCodeConfigurationElement():
     __request: str
     program: str
     console: str
+    cwd: str
     runtimeExecutable: str
     args: dict
     presentation: dict
@@ -119,8 +128,8 @@ class VSCodeConfigurationElement():
         self.__request = request
         self.program = program
         self.console = console
-
-        self.runtimeExecutable = 'python3'
+        self.cwd = '${workspaceFolder}'
+        # self.runtimeExecutable = 'python3'
         self.args = {}
         self.presentation = {
             'hidden': False,
@@ -136,11 +145,12 @@ class VSCodeConfigurationElement():
             'type': self.conf_type,
             'name': self.__name,
             'request': self.__request,
-            'runtimeExecutable': self.runtimeExecutable,
+            # 'runtimeExecutable': self.runtimeExecutable,
             'program': self.program,
             'console': self.console,
             'args': self.args,
-            'presentation': self.presentation
+            'presentation': self.presentation,
+            'cwd': self.cwd
         }
 
     def as_json(self):
