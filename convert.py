@@ -74,10 +74,14 @@ class Convert():
                     'integratedTerminal'
                 )
 
-                if node.getElementsByTagName('module'):
-                    module_name = node.getElementsByTagName('module')[0] \
-                                        .getAttribute('name')
-                    vscode_node.presentation['group'] = module_name
+                if node.getAttribute('folderName') == '':                                   
+                    if node.getElementsByTagName('module'):
+                        module_name = node.getElementsByTagName('module')[0] \
+                                            .getAttribute('name')
+                else:
+                    module_name = node.getAttribute('folderName')
+
+                vscode_node.presentation['group'] = module_name
 
                 node_options = node.getElementsByTagName('option')
                 for option in node_options:
