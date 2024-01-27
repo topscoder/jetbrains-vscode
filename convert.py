@@ -24,7 +24,7 @@ __author__ = "github.com/topscoder"
 __license__ = "UNLICENSE"
 
 
-class Convert():
+class Convert:
     def __init__(self):
         self.now()
 
@@ -32,83 +32,89 @@ class Convert():
         workspace_parsed = self.parse_workspace_xml()
         contents = {}
 
-        with open('launch.json', 'w+') as target:
+        with open("launch.json", "w+") as target:
             # Warning! It's overwriting all existing configurations.
             try:
                 contents = json.load(target)
             except Exception:
                 pass
-            contents['configurations'] = workspace_parsed
+            contents["configurations"] = workspace_parsed
             target.write(json.dumps(contents, indent=2))
 
             target.close()
 
-        print('> OK written to launch.json.')
-        print('> Copy launch.json to your VSCode project / workspace '
-              'and have fun!')
+        print("> OK written to launch.json.")
+        print("> Copy launch.json to your VSCode project / workspace " "and have fun!")
 
     def parse_workspace_xml(self) -> list:
         cwd = Path(getcwd())
         nodes = []
         xml_files = cwd.rglob("*.xml")
         for workspace_xml in cwd.rglob("*.xml"):
-            print(f'> reading {str(workspace_xml)}')
+            print(f"> reading {str(workspace_xml)}")
             doc = xml.dom.minidom.parse(str(workspace_xml))
-            configuration_nodes = doc.getElementsByTagName('configuration')
+            configuration_nodes = doc.getElementsByTagName("configuration")
 
             for node in configuration_nodes:
-                if node.getAttribute('type') != 'PythonConfigurationType':
+                if node.getAttribute("type") != "PythonConfigurationType":
                     continue
 
-                if node.getAttribute('name') == '':
+                if node.getAttribute("name") == "":
                     continue
 
-                if node.getAttribute('type') == '':
+                if node.getAttribute("type") == "":
                     continue
 
                 vscode_node = VSCodeConfigurationElement(
-                    node.getAttribute('name'),
-                    node.getAttribute('type'),
-                    'launch',
-                    '',
-                    'integratedTerminal'
+                    node.getAttribute("name"),
+                    node.getAttribute("type"),
+                    "launch",
+                    "",
+                    "integratedTerminal",
                 )
 
-                if node.getElementsByTagName('module'):
-                    module_name = node.getElementsByTagName('module')[0] \
-                                        .getAttribute('name')
-                    vscode_node.presentation['group'] = module_name
+                if node.getAttribute("folderName") == "":
+                    if node.getElementsByTagName("module"):
+                        module_name = node.getElementsByTagName("module")[0].getAttribute("name")
+                else:
+                    module_name = node.getAttribute("folderName")
 
-                node_options = node.getElementsByTagName('option')
+                vscode_node.presentation["group"] = module_name
+
+                node_options = node.getElementsByTagName("option")
                 for option in node_options:
-                    if option.getAttribute('name') == 'SCRIPT_NAME':
-                        vscode_node.program = option.getAttribute('value')
+                    if option.getAttribute("name") == "SCRIPT_NAME":
+                        vscode_node.program = option.getAttribute("value")
                         continue
 
-                    if option.getAttribute('name') == 'PARAMETERS':
-                        vscode_node.args = option.getAttribute('value').replace('$PROJECT_DIR$','${workspaceFolder}').split(' ')
+                    if option.getAttribute("name") == "PARAMETERS":
+                        vscode_node.args = (
+                            option.getAttribute("value")
+                            .replace("$PROJECT_DIR$", "${workspaceFolder}")
+                            .split(" ")
+                        )
 
-                    if option.getAttribute('name') == 'WORKING_DIRECTORY':
-                        vscode_node.cwd = option.getAttribute('value')
+                    if option.getAttribute("name") == "WORKING_DIRECTORY":
+                        vscode_node.cwd = option.getAttribute("value")
 
                 nodes.append(vscode_node.as_dict())
 
         return nodes
 
 
-class VSCodeConfigurationElement():
+class VSCodeConfigurationElement:
     """This object contains one configuration element.
 
-        Example:
-        {
-            "name": "Python: Current file",
-            "type": "python",
-            "request": "launch",
-            "runtimeExecutable": "python3",
-            "program": "${file}",
-            "console": "integratedTerminal",
-            "args": ["--foobar"]
-        }
+    Example:
+    {
+        "name": "Python: Current file",
+        "type": "python",
+        "request": "launch",
+        "runtimeExecutable": "python3",
+        "program": "${file}",
+        "console": "integratedTerminal",
+        "args": ["--foobar"]
+    }
     """
 
     __name: str
@@ -128,29 +134,26 @@ class VSCodeConfigurationElement():
         self.__request = request
         self.program = program
         self.console = console
-        self.cwd = '${workspaceFolder}'
+        self.cwd = "${workspaceFolder}"
         # self.runtimeExecutable = 'python3'
         self.args = {}
-        self.presentation = {
-            'hidden': False,
-            'group': 'Default'
-        }
+        self.presentation = {"hidden": False, "group": "Default"}
 
-        self.comment = ('Automatically converted from '
-                        'Jetbrains IDE workspace.xml '
-                        'to VSCode launch.json')
+        self.comment = (
+            "Automatically converted from " "Jetbrains IDE workspace.xml " "to VSCode launch.json"
+        )
 
     def as_dict(self):
         return {
-            'type': self.conf_type,
-            'name': self.__name,
-            'request': self.__request,
+            "type": self.conf_type,
+            "name": self.__name,
+            "request": self.__request,
             # 'runtimeExecutable': self.runtimeExecutable,
-            'program': self.program,
-            'console': self.console,
-            'args': self.args,
-            'presentation': self.presentation,
-            'cwd': self.cwd
+            "program": self.program,
+            "console": self.console,
+            "args": self.args,
+            "presentation": self.presentation,
+            "cwd": self.cwd,
         }
 
     def as_json(self):
@@ -158,17 +161,12 @@ class VSCodeConfigurationElement():
 
     def __setattr__(self, name, value):
         self.__dict__[name] = value
-        if name == 'conf_type':
-            self.__dict__[name] = value.replace(
-                'PythonConfigurationType',
-                'python'
-            )
+        if name == "conf_type":
+            self.__dict__[name] = value.replace("PythonConfigurationType", "python")
 
-        if '$PROJECT_DIR$' in value:
-            self.__dict__[name] = value.replace(
-                '$PROJECT_DIR$',
-                '${workspaceFolder}')
+        if "$PROJECT_DIR$" in value:
+            self.__dict__[name] = value.replace("$PROJECT_DIR$", "${workspaceFolder}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     Convert()
