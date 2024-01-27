@@ -14,34 +14,16 @@
     Warning! But the good news is that is only overwrites the configurations.
     Warning!
 """
-<<<<<<< HEAD
-
-=======
->>>>>>> pr/1
 import sys
 import json
 import xml.dom.minidom
 from pathlib import Path
-<<<<<<< HEAD
-=======
-from os import getcwd
->>>>>>> pr/1
 
 
 __author__ = "github.com/topscoder"
 __license__ = "UNLICENSE"
 
 
-<<<<<<< HEAD
-class Convert():
-    def __init__(self, source: str = "workspace.xml", destination: str = "launch.json"):
-        self.source = Path(source)
-        self.destination = Path(destination)
-        # If only a directory was set as destination, add launch.json as default filename
-        if self.destination.suffix != ".json":
-            self.destination = self.destination / "launch.json"
-        
-=======
 class Convert:
     def __init__(self, source: str = None, destination: str = "launch.json"):
         if source is not None:
@@ -79,18 +61,13 @@ class Convert:
                 )
                 sys.exit(1)
 
->>>>>>> pr/1
         self.now()
 
     def now(self):
         workspace_parsed = self.process_source()
         contents = {}
 
-<<<<<<< HEAD
-        with open(self.destination, 'w+') as target:
-=======
         with open(self.destination, "w+") as target:
->>>>>>> pr/1
             # Warning! It's overwriting all existing configurations.
             try:
                 contents = json.load(target)
@@ -101,15 +78,6 @@ class Convert:
 
             target.close()
 
-<<<<<<< HEAD
-        print(f'> OK written to {self.destination}')
-        print(f'> Copy {self.destination.name} to your VSCode project / workspace '
-              'and have fun!')
-
-    def parse_workspace_xml(self) -> list:
-        doc = xml.dom.minidom.parse(str(self.source))
-        configuration_nodes = doc.getElementsByTagName('configuration')
-=======
         print("")
         print(f"> {bcolors.WHITE}OK written to {bcolors.CYAN}{self.destination}{bcolors.ENDC}")
         print(
@@ -147,7 +115,6 @@ class Convert:
         else:
             print(f" --> no configuration")
 
->>>>>>> pr/1
         nodes = []
         for node in configuration_nodes:
             if node.getAttribute("type") != "PythonConfigurationType":
@@ -262,13 +229,6 @@ class VSCodeConfigurationElement:
             self.__dict__[name] = value.replace("$PROJECT_DIR$", "${workspaceFolder}")
 
 
-<<<<<<< HEAD
-if __name__ == '__main__':    
-    try:
-        Convert(source=sys.argv[1], destination=sys.argv[2])
-    except IndexError:
-        Convert()
-=======
 class bcolors:
     WHITE = "\033[37m"
     PINK = "\033[95m"
@@ -287,4 +247,3 @@ if __name__ == "__main__":
         Convert(source=sys.argv[1], destination=sys.argv[2])
     except IndexError:
         Convert()
->>>>>>> pr/1
