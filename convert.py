@@ -15,8 +15,10 @@
     Warning!
 """
 
+import sys
 import json
 import xml.dom.minidom
+from pathlib import Path
 
 
 __author__ = "github.com/topscoder"
@@ -24,14 +26,20 @@ __license__ = "UNLICENSE"
 
 
 class Convert():
-    def __init__(self):
+    def __init__(self, source: str = "workspace.xml", destination: str = "launch.json"):
+        self.source = Path(source)
+        self.destination = Path(destination)
+        # If only a directory was set as destination, add launch.json as default filename
+        if self.destination.suffix != ".json":
+            self.destination = self.destination / "launch.json"
+        
         self.now()
 
     def now(self):
         workspace_parsed = self.parse_workspace_xml()
         contents = {}
 
-        with open('launch.json', 'w+') as target:
+        with open(self.destination, 'w+') as target:
             # Warning! It's overwriting all existing configurations.
             try:
                 contents = json.load(target)
@@ -42,12 +50,12 @@ class Convert():
 
             target.close()
 
-        print('> OK written to launch.json.')
-        print('> Copy launch.json to your VSCode project / workspace '
+        print(f'> OK written to {self.destination}')
+        print(f'> Copy {self.destination.name} to your VSCode project / workspace '
               'and have fun!')
 
     def parse_workspace_xml(self) -> list:
-        doc = xml.dom.minidom.parse("workspace.xml")
+        doc = xml.dom.minidom.parse(str(self.source))
         configuration_nodes = doc.getElementsByTagName('configuration')
         nodes = []
 
@@ -160,5 +168,8 @@ class VSCodeConfigurationElement():
                 '${workspaceFolder}')
 
 
-if __name__ == '__main__':
-    Convert()
+if __name__ == '__main__':    
+    try:
+        Convert(source=sys.argv[1], destination=sys.argv[2])
+    except IndexError:
+        Convert()
