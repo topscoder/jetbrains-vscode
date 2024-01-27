@@ -1,3 +1,6 @@
+test*/
+venv/
 launch.json
 workspace.xml
 *.xml
+pyproject.toml
